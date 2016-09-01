@@ -31,6 +31,46 @@ struct data
 	int data;
 };
 
+bool cmp_int_simple(void *a, void *b)
+{
+	int *aa = a;
+	int *bb = b;
+	if (*aa < *bb)
+		return true;
+	return false;
+}
+void set_int_simple(int index, void *a)\
+{
+}
+
+void test_simple()
+{
+	struct minheap heap;
+	int data[100];	
+	init_heap(&heap, 100, cmp_int_simple, NULL, set_int_simple);
+	for (int i = 0; i < 100; ++i)
+	{
+		data[i] = i;
+	}
+
+	for (int i = 0; i < 100; i+=2)
+	{
+		push_heap(&heap, &data[i]);
+	}
+	for (int i = 1; i < 100; i+=2)
+	{
+		push_heap(&heap, &data[i]);
+	}
+	int last = -0xffffff;
+	int *ret;
+	while (ret = pop_heap(&heap))
+	{
+		assert(*ret >= last);
+		last = *ret;
+	}
+}
+
+
 int main(int argc, char *argv[])
 {
 	struct minheap heap;
@@ -70,6 +110,8 @@ int main(int argc, char *argv[])
 		last = ret->data;
 		printf("ret = %d\n", ret->data);
 	}
+
+	test_simple();
 	
     return 0;
 }

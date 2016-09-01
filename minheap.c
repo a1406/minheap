@@ -16,8 +16,6 @@ int init_heap(struct minheap *heap, int max_size, minheap_cmp cmp, minheap_getin
 	if (!heap->nodes)
 		return (-1);
 	assert(cmp);
-	assert(get);
-	assert(set);
 	heap->cmp = cmp;
 	heap->get = get;
 	heap->set = set;
@@ -25,6 +23,7 @@ int init_heap(struct minheap *heap, int max_size, minheap_cmp cmp, minheap_getin
 }
 int get_node_index(struct minheap *heap, void *node)
 {
+	assert(heap->get);
 	int index = heap->get(node);
 	assert(heap->cur_size > index);
 	assert(heap->nodes[index] == node);
@@ -76,6 +75,7 @@ int erase_heap_node(struct minheap* heap, void *node)
 
 static void min_heap_shift_up_unconditional_(min_heap_t* s, unsigned hole_index, void* node)
 {
+	assert(s->set);
     unsigned parent = (hole_index - 1) / 2;
     do
     {
@@ -90,6 +90,7 @@ static void min_heap_shift_up_unconditional_(min_heap_t* s, unsigned hole_index,
 
 static void min_heap_shift_up_(min_heap_t* s, unsigned hole_index, void *node)
 {
+	assert(s->set);	
     unsigned parent = (hole_index - 1) / 2;
     while (hole_index && s->cmp(node, s->nodes[parent]))
 	{
@@ -104,6 +105,7 @@ static void min_heap_shift_up_(min_heap_t* s, unsigned hole_index, void *node)
 
 static void min_heap_shift_down_(min_heap_t* s, unsigned hole_index, void* node)
 {
+	assert(s->set);	
     unsigned min_child = 2 * (hole_index + 1);
     while (min_child <= s->cur_size)
 	{
