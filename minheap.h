@@ -3,14 +3,18 @@
 
 #include <stdbool.h>
 
+typedef bool (*minheap_cmp)(void *a, void *b);
+
 struct minheap
 {
 	int max_size;
 	int cur_size;
 	void **nodes;
+	minheap_cmp cmp;
 };
 
-typedef bool (*minheap_cmp)(void *a, void *b);
-int push_heap(void *data);
+int push_heap(void *node, struct minheap *heap);
+void *pop_heap(struct minheap *heap);
+int adjust_heap_node(struct minheap *heap, void *node);
 
 #endif /* MINHEAP_H */
