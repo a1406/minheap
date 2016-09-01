@@ -8,28 +8,30 @@ static void min_heap_shift_down_(min_heap_t* s, unsigned hole_index, void* node)
 static void min_heap_shift_up_(min_heap_t* s, unsigned hole_index, void *node);
 static void min_heap_shift_up_unconditional_(min_heap_t* s, unsigned hole_index, void* node);
 
-int init_heap(struct minheap *heap, int data_size, int max_size, minheap_cmp cmp)
+int init_heap(struct minheap *heap, int max_size, minheap_cmp cmp)
 {
 	heap->max_size = max_size;
 	heap->cur_size = 0;
 	heap->nodes = malloc(sizeof(void *) * max_size);
 	if (!heap->nodes)
 		return (-1);
-	heap->data_size = data_size;
 	heap->cmp = cmp;
 	return (0);
 }
-int get_node_index(struct minheap *heap, void *node)
+int get_node_index(struct minheap *heap, void **node)
 {
-	assert(heap->nodes[(node - heap->nodes[0]) / heap->data_size] == node);
-	return (node - heap->nodes[0]) / heap->data_size;
+	int index = (node - &heap->nodes[0]) / sizeof(void *);
+	assert(heap->cur_size > index);
+	assert(heap->nodes[index] == node);
+	return index;
 }
 
 int push_heap(struct minheap *heap, void *node)
 {
 	if (heap->cur_size >= heap->max_size)
 		return (-1);
-	insert_heap(heap, heap->cur_size, node);
+	min_heap_shift_up_(heap, heap->cur_size++, node);	
+//	insert_heap(heap, heap->cur_size, node);
 	return (0);
 }
 void *pop_heap(struct minheap *heap)
@@ -41,7 +43,9 @@ void *pop_heap(struct minheap *heap)
 
     // 保存最小值
     void *ret = heap->nodes[0];
-
+	min_heap_shift_down_(heap, 0u, heap->nodes[--heap->cur_size]);
+	return ret;
+/*
     // 比较两个子节点，将小的提升为父节点
     int parent = 0;
     int left, right;
@@ -70,22 +74,33 @@ void *pop_heap(struct minheap *heap)
 
 	--heap->cur_size;	
 	return ret;
+*/	
 }
-int adjust_heap_node(struct minheap *heap, void *node)
+int adjust_heap_node(struct minheap *heap, void **node)
 {
 	int index = get_node_index(heap, node);
-	int parent = (index - 1) / 2;
-		//比父节点小，上移
-	if (heap->cmp(heap->nodes[index], heap->nodes[parent]))
-	{
-	}
-		//下移
+	unsigned parent = (index - 1) / 2;	
+
+	if (index > 0 && heap->cmp(*node, heap->nodes[parent]))
+		min_heap_shift_up_unconditional_(heap, index, *node);
 	else
-	{
-	}
+		min_heap_shift_down_(heap, index, *node);
+	return 0;
+}
+
+int erase_heap_node(struct minheap* heap, void **node)
+{
+	int index = get_node_index(heap, node);
+	void *last = heap->nodes[--heap->cur_size];
+	unsigned parent = (index - 1) / 2;
+	if (index > 0 && heap->cmp(last, heap->nodes[parent]))
+		min_heap_shift_up_unconditional_(heap, index, last);
+	else
+		min_heap_shift_down_(heap, index, last);
 	return (0);
 }
 
+/*
 static bool insert_heap(struct minheap *heap, int pos, void *node)
 {
 	heap->nodes[pos] = node;
@@ -112,7 +127,7 @@ static bool insert_heap(struct minheap *heap, int pos, void *node)
 
     return true;
 }
-
+*/
 static void min_heap_shift_up_unconditional_(min_heap_t* s, unsigned hole_index, void* node)
 {
     unsigned parent = (hole_index - 1) / 2;
@@ -127,7 +142,6 @@ static void min_heap_shift_up_unconditional_(min_heap_t* s, unsigned hole_index,
 
 static void min_heap_shift_up_(min_heap_t* s, unsigned hole_index, void *node)
 {
-	int index = get_node_index(s, node);	
     unsigned parent = (hole_index - 1) / 2;
     while (hole_index && s->cmp(node, s->nodes[parent]))
 	{
@@ -140,7 +154,6 @@ static void min_heap_shift_up_(min_heap_t* s, unsigned hole_index, void *node)
 
 static void min_heap_shift_down_(min_heap_t* s, unsigned hole_index, void* node)
 {
-	int index = get_node_index(s, node);
     unsigned min_child = 2 * (hole_index + 1);
     while (min_child < s->cur_size)
 	{
