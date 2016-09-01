@@ -1,8 +1,12 @@
 #include "minheap.h"
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 static bool insert_heap(struct minheap *heap, int pos, void *node);
+static void min_heap_shift_down_(min_heap_t* s, unsigned hole_index, void* node);
+static void min_heap_shift_up_(min_heap_t* s, unsigned hole_index, void *node);
+static void min_heap_shift_up_unconditional_(min_heap_t* s, unsigned hole_index, void* node);
 
 int init_heap(struct minheap *heap, int data_size, int max_size, minheap_cmp cmp)
 {
@@ -17,6 +21,7 @@ int init_heap(struct minheap *heap, int data_size, int max_size, minheap_cmp cmp
 }
 int get_node_index(struct minheap *heap, void *node)
 {
+	assert(heap->nodes[(node - heap->nodes[0]) / heap->data_size] == node);
 	return (node - heap->nodes[0]) / heap->data_size;
 }
 
@@ -68,7 +73,16 @@ void *pop_heap(struct minheap *heap)
 }
 int adjust_heap_node(struct minheap *heap, void *node)
 {
-	
+	int index = get_node_index(heap, node);
+	int parent = (index - 1) / 2;
+		//比父节点小，上移
+	if (heap->cmp(heap->nodes[index], heap->nodes[parent]))
+	{
+	}
+		//下移
+	else
+	{
+	}
 	return (0);
 }
 
@@ -97,4 +111,47 @@ static bool insert_heap(struct minheap *heap, int pos, void *node)
     ++heap->cur_size;
 
     return true;
+}
+
+static void min_heap_shift_up_unconditional_(min_heap_t* s, unsigned hole_index, void* node)
+{
+    unsigned parent = (hole_index - 1) / 2;
+    do
+    {
+		s->nodes[hole_index] = s->nodes[parent];
+		hole_index = parent;
+		parent = (hole_index - 1) / 2;
+    } while (hole_index && s->cmp(node, s->nodes[parent]));
+    s->nodes[hole_index] = node;
+}
+
+static void min_heap_shift_up_(min_heap_t* s, unsigned hole_index, void *node)
+{
+	int index = get_node_index(s, node);	
+    unsigned parent = (hole_index - 1) / 2;
+    while (hole_index && s->cmp(node, s->nodes[parent]))
+	{
+		s->nodes[hole_index] = s->nodes[parent];
+		hole_index = parent;
+		parent = (hole_index - 1) / 2;
+	}
+	s->nodes[hole_index] = node;
+}
+
+static void min_heap_shift_down_(min_heap_t* s, unsigned hole_index, void* node)
+{
+	int index = get_node_index(s, node);
+    unsigned min_child = 2 * (hole_index + 1);
+    while (min_child < s->cur_size)
+	{
+		if (min_child == s->cur_size - 1
+			|| s->cmp(s->nodes[min_child - 1], s->nodes[min_child]))
+			--min_child;
+		if (s->cmp(node, s->nodes[min_child]))
+			break;
+		s->nodes[hole_index] = s->nodes[min_child];
+		hole_index = min_child;
+		min_child = 2 * (hole_index + 1);
+	}
+	s->nodes[hole_index] = node;
 }
